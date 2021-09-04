@@ -25,3 +25,4 @@ if it doesn't work, you can try <b> bash arch-installer.sh </b> <br>
 # Addition
 - <b>for donate you can click <a href="https://saweria.co/fooster"> This </a> </b>
 - For bug you can email me : alfaridzi1337@gmail.com
+- j
