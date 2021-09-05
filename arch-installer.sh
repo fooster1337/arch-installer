@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################
-# Author : rey fooster 		  #
+# Author : rey fooster 	      #
 #  - fooster1337@gmail.com -  #  
 ###############################
 
@@ -13,7 +13,7 @@ BLINK="$(tput blink)"
 GREEN="$(tput setaf 2)"
 
 # version 
-version='0.1'
+version='0.2'
 
 # packages base
 base='base base-devel linux linux-firmware sudo networkmanager bluez bluez-utils grub efibootmgr os-prober wpa_supplicant amd-ucode intel-ucode'
@@ -183,6 +183,7 @@ set_timezone ()
 	title "configuration"
 	echo
 	read -p "[?] Set timezone (Region/City) : " timezone
+	msg_procces "Set timezone $timezone ..."
 	arch-chroot $chroot ln -sf /usr/share/zoneinfo/$timezone /etc/localtime 
 	arch-chroot $chroot hwclock --systohc
 	return
@@ -210,7 +211,7 @@ install_kde () {
 	arch-chroot $chroot systemctl $sddm enable > $null 2>&1
 	msg_procces "Install KDE PLASMA success ..."
 	sleep 2
-	return
+	finish_install
 }
 
 install_xfce () {
@@ -222,7 +223,7 @@ install_xfce () {
 	arch-chroot $chroot systemctl $lxdm enable > $null 2>&1
 	msg_procces "Install XFCE success ..."
 	sleep 2
-	return
+	finish_install
 }
 
 set_hostname () 
@@ -264,10 +265,10 @@ set_password ()
 	echo
 	title "Set password"
 	echo 
-	msg_ask "Set password for root ..."
+	msg_procces "Set password for root ..."
 	arch-chroot $chroot passwd
 	echo
-	msg_ask "Set password for $username ..."
+	msg_procces "Set password for $username ..."
 	arch-chroot $chroot passwd $username
 	echo
 	msg_ask "set password success ..."
@@ -275,24 +276,26 @@ set_password ()
 	return
 }
 
-set_locale() {
+locale() {
 	echo
 	title "Set locale"
 	echo
-	printf "[?] Set locale [en_US.UTF-8 UTF-8] : "
-	read -r locale 
-	if [ -z "locale" ]
-	then
-		echo
-		msg_procces "Set locale default en_US.UTF-8 UTF-8 ..."
-		arch-chroot $chroot echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen 
+	reap -p "[?] Set locale [en_US.UTF-8 UTF-8] : " locale
+	case "$locale" in
+		*)
+		echo "en_US.UTF-8 UTF-8" >> $chroot/etc/locale.gen
 		arch-chroot $chroot locale-gen > $null 2>&1
-	fi
-	msg_procces "Set locale $locale ..."
-	arch-chroot $chroot echo "$locale" >> /etc/locale.gen 
+	esac
+}
+
+set_locale () {
+	echo
+	msg_procces "set locale ..."
+	echo $locale >> $chroot/etc/locale-gen
 	arch-chroot $chroot locale-gen > $null 2>&1
 	return
 }
+
 install_grub () {
 	echo
 	title "Installing grub"
@@ -306,7 +309,7 @@ install_grub () {
 }
 set_de () {
 	echo
-	title ">> DE"
+	title "DE"
 	echo 
 	read -p "[?] Install DE on you arch? [${GREEN}Yes${RESET}/${RED}No${RESET}] " set_de
 	case "$set_dede" in
@@ -314,7 +317,7 @@ set_de () {
 		install_de
 		;;
 		n|No|N|no|NO)
-		return
+		finish_install
 		;;
 		*)
 		install_de
@@ -324,7 +327,7 @@ esac
 install_de () 
 {
 	echo
-	title ">> Choose DE"
+	title "Choose DE"
 	echo
 	echo "
 1. GNOME
@@ -341,6 +344,9 @@ install_de ()
 		;;
 		3)
 		install_xfce
+		;;
+		*)
+		return
 		;;
 	 esac 
 }
@@ -362,6 +368,7 @@ finish_install () {
 	echo "[+] Installing arch success! ..."
 	echo
 	echo "Now you can say ${blink}I use arch btw ..."
+	echo
 	exit 0
 }
 
@@ -377,6 +384,7 @@ main(){
 	set_hostname
 	set_username
 	set_password
+	locale
 	set_locale
 	install_grub
 	set_de
