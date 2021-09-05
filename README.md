@@ -6,7 +6,7 @@ Simple installer for <a href="https://archlinux.org/">Arch Linux </a>
 2. clone this repo
 ```
 git clone https://github.com/fooster1337/arch-installer
-chmod +x arch-installer.sh
+cd arch-installer
 ```
 3. and run script
 ```
