@@ -141,7 +141,6 @@ format_partition() {
 	mkfs.$type -F $filesystem > $null 2>&1
 	sleep 1
 	msg_procces "Creating boot partition ..."
-	mkdir -p $chroot/boot/efi
 	mkfs.fat -F32 $boot > $null 2>&1
 	sleep 1
 	msg_procces "Creating SWAP partition ..."
@@ -157,6 +156,7 @@ mount_partition ()
 	mount $filesystem $chroot
 	sleep 1
 	msg_procces "mount boot partition ..."
+	mkdir -p $chroot/boot/efi
 	mount $boot $chroot/boot/efi
 	sleep 1
 	msg_procces "Activating swap ..."
@@ -172,7 +172,7 @@ install_base ()
 	msg_procces "Installing packages, make sure the internet is still active ..."
 	pacman -Sy --noconfirm > $null 2>&1
 	pacstrap $chroot $base > $null 2>&1
-	genftsab -U $chroot $chroot/etc/fstab
+	genfstab -U $chroot >> $chroot/etc/fstab
 	msg_procces "Finished ..."
 	sleep 2
 	return
