@@ -1,0 +1,418 @@
+#!/bin/bash
+
+###############################
+# Author : rey fooster 		  #
+# - alfaridzi1337@gmail.com - #  
+###############################
+
+# color
+WHITE="$(tput setaf 7)"
+RED="$(tput setaf 1)"
+RESET="$(tput sgr0)"
+BLINK="$(tput blink)"
+GREEN="$(tput setaf 2)"
+
+# version 
+version='0.3'
+
+# packages base
+base='base base-devel linux linux-firmware sudo networkmanager bluez bluez-utils grub os-prober wpa_supplicant amd-ucode intel-ucode'
+
+browser='chromium firefox'
+
+chroot='/mnt'
+
+disk='/dev/sda'
+
+null='/dev/null'
+
+editor='vim nano'
+
+# DE PACKAGES
+xorg='xorg xorg-server'
+KDE='plasma plasma-wayland-session kde-applications'
+GNOME='gnome'
+XFCE4='xfce4 xfce4-goodies'
+
+# DM (Display Manager)
+sddm='sddm'
+gdm='gdm'
+lxdm='lxdm'
+
+ctrlc_trap()
+{
+	echo
+	err "ctrl + C detected, Exiting ..."
+	exit 0
+}
+
+trap ctrlc_trap 2
+
+checking_internet()
+{
+	if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
+		return 0
+	else
+		err "You are offline, please check you internet ..."
+		exit 0
+	fi
+}
+
+err() {
+	printf "%s=> %s%s\n" "$RED" "$RESET" "$@"
+}
+
+msg_procces() {
+	printf "%s* %s%s\n" "$GREEN" "$RESET" "$@" 
+}
+
+msg_ask () {
+	printf "[?] %s\n" "$@"
+}
+
+title() {
+	printf "%s>> %s%s\n" "$GREEN" "$RESET" "$@"
+}
+
+banner ()
+{
+	echo "
+<===== Welcome to arch installer! =====>
+=> version : $version
+=> author  : Rey Fooster
+=> git 	   : https://github.com/fooster1337/arch-installer
+=> BIOS installer
+<============ I Use Arch Btw ===========>
+"
+}
+
+partition() {
+	title "Set up you partition"
+	echo
+	read -p "[+] create a partition for arch? [${GREEN}Yes${RESET}/${RED}No${RESET}] " set 
+	case "$set" in
+		y|Yes|Y|yes|YES)
+		cfdisk $disk
+		return
+		;;
+		n|No|N|no|NO)
+		return
+		;;
+		*)
+		return
+		;;
+esac
+} 
+set_partition() {
+	echo
+	title "Choose you partition"
+	echo
+	fdisk -l $disk -o device,size,type | \
+    grep "$disk[[:alnum:]]" |awk '{print $1;}'
+    echo
+	read -p "[?] Filesystem partition : " filesystem
+	read -p "[?] Type filesystem [ext2,ext3,ext4,btrfs] : " type
+	read -p "[?] Swap partition : " swap
+	echo "
+${GREEN}
+$filesystem => $type
+$swap => swap
+${RESET}
+"
+	read -p "[?] this will format the selected partition, sure you don't regret it? [${GREEN}Yes${RESET}/${RED}No${RESET}] " select
+	case "$select" in
+		y|Yes|Y|yes|YES)
+		return
+		;;
+		n|No|N|no|NO)
+		set_partition
+		;;
+		*)
+		return
+		;;
+esac		
+}
+format_partition() {
+	echo
+	title "Formatting partition"
+	echo
+	msg_procces "Creating $type partition ..."
+	mkfs.$type -F $filesystem > $null 2>&1
+	sleep 1
+	msg_procces "Creating SWAP partition ..."
+	mkswap $swap > $null 2>&1
+	return
+}
+mount_partition ()
+{
+	echo 
+	title "Mounting partition"
+	echo
+	msg_procces "mounting filesystem ..."
+	mount $filesystem $chroot
+	sleep 1
+	msg_procces "Activating swap ..."
+	swapon $swap
+	sleep 1
+	return
+}
+install_base ()
+{
+	echo
+	title "Install base system for arch"
+	echo
+	msg_procces "Installing packages, make sure the internet is still active ..."
+	pacman -Sy --noconfirm > $null 2>&1
+	pacstrap $chroot $base $editor > $null 2>&1
+	genfstab -U $chroot >> $chroot/etc/fstab
+	msg_procces "Finished ..."
+	sleep 2
+	return
+}
+browser () {
+	echo
+	title "BROWSER"
+	echo
+	read -p "[?] Install browser ($browser) [${GREEN}Yes${RESET}/${RED}No${RESET}] " browser
+	case "$set_dede" in
+		y|Yes|Y|yes|YES)
+		install_browser
+		;;
+		n|No|N|no|NO)
+		return
+		;;
+		*)
+		install_browser
+		;;
+esac	
+}
+
+install_browser () {
+	echo
+	msg_procces "Installing browser ($browser) ..."
+	pacstrap $chroot $browser > $null 2>&1
+	msg_procces "success ..."
+	sleep 1
+	return
+}
+
+set_timezone () 
+{
+	echo 
+	title "configuration"
+	echo
+	read -p "[?] Set timezone (Region/City) : " timezone
+	msg_procces "Set timezone $timezone ..."
+	msg_procces "Success ..."
+	arch-chroot $chroot ln -sf /usr/share/zoneinfo/$timezone /etc/localtime 
+	arch-chroot $chroot hwclock --systohc
+	return
+}
+
+install_gnome ()
+{
+	echo
+	title "Installing GNOME"
+	echo
+	msg_procces "Installing GNOME ..."
+	pacstrap $chroot $GNOME $xorg $gdm > $null 2>&1
+	arch-chroot $chroot systemctl $gdm enable > $null 2>&1
+	msg_procces "Install GNOME success ..."
+	sleep 2
+	return
+}
+
+install_kde () {
+	echo
+	title "Installing KDE PLASMA" 
+	echo
+	msg_procces "Installing KDE PLASMA ..."
+	pacstrap $chroot $KDE $xorg $sddm > $null 2>&1
+	arch-chroot $chroot systemctl $sddm enable > $null 2>&1
+	msg_procces "Install KDE PLASMA success ..."
+	sleep 2
+	finish_install
+}
+
+install_xfce () {
+	echo
+	title "Installing XFCE" 
+	echo
+	msg_procces "Installing XFCE..."
+	pacstrap $chroot $xfce4 $xorg $lxdm > $null 2>&1
+	arch-chroot $chroot systemctl $lxdm enable > $null 2>&1
+	msg_procces "Install XFCE success ..."
+	sleep 2
+	finish_install
+}
+
+set_hostname () 
+{
+	echo 
+	title "Set hostname"
+	echo
+	read -p "[?] You hostname : " hostname
+	echo
+	msg_procces "Set hostname $hostname ..."
+	sleep 2
+	cat > $chroot/etc/hostname <<EOF
+$hostname
+EOF
+	cat > $chroot/etc/hosts <<EOF
+127.0.0.1	localhost
+::1 		localhost
+127.0.1.1 	$hostname.localdomain	$hostname
+EOF
+	msg_procces "Success ..."
+
+return
+}
+
+set_username() 
+{
+	echo
+	title "Set username"
+	echo
+	read -p "[?] You username : " username
+	echo
+	msg_procces "Set username $username ..."
+	sleep 2
+	arch-chroot $chroot useradd -mG wheel $username
+	msg_procces "Success ..."
+	return
+}
+
+set_password () 
+{
+	echo
+	title "Set password"
+	echo 
+	msg_procces "Set password for root ..."
+	arch-chroot $chroot passwd
+	echo
+	msg_procces "Set password for $username ..."
+	arch-chroot $chroot passwd $username
+	echo
+	msg_ask "set password success ..."
+	sleep 1
+	return
+}
+
+locale() {
+	echo
+	title "Set locale"
+	echo
+	read -p "[?] Set locale [en_US.UTF-8 UTF-8] : " locale
+	case "$locale" in
+		*)
+		echo "en_US.UTF-8 UTF-8" >> $chroot/etc/locale.gen
+		arch-chroot $chroot locale-gen > $null 2>&1
+	esac
+}
+
+set_locale () {
+	echo
+	msg_procces "set locale ..."
+	echo $locale >> $chroot/etc/locale-gen
+	arch-chroot $chroot locale-gen > $null 2>&1
+	msg_procces "Success ..."
+	return
+}
+
+install_grub () {
+	echo
+	title "Installing grub"
+	echo
+	msg_procces "Install GRUB ..."
+	arch-chroot $chroot grub-install $disk --recheck > $null 2>&1
+	arch-chroot $chroot grub-mkconfig -o /boot/grub/grub.cfg > $null 2>&1
+	msg_procces "Install GRUB success ..."
+	sleep 2
+	return
+}
+set_de () {
+	echo
+	title "DE"
+	echo 
+	read -p "[?] Install DE on you arch? [${GREEN}Yes${RESET}/${RED}No${RESET}] " set_de
+	case "$set_dede" in
+		y|Yes|Y|yes|YES)
+		install_de
+		;;
+		n|No|N|no|NO)
+		finish_install
+		;;
+		*)
+		install_de
+		;;
+esac	
+}
+install_de () 
+{
+	echo
+	title "Choose DE"
+	echo
+	echo "
+1. GNOME
+2. KDE
+3. XFCE 
+	"
+	read -p "[?] Choose you DE : " de 
+	case "$de" in
+	 	1)
+		install_gnome
+	 	;;
+	 	2)
+		install_kde
+		;;
+		3)
+		install_xfce
+		;;
+		*)
+		return
+		;;
+	 esac 
+}
+
+finish_install () {
+	echo
+	title "Finish install"
+	echo 
+	msg_procces "Enabled services ..."
+	arch-chroot $chroot systemctl enable NetworkManager > $null 2>&1
+	arch-chroot $chroot systemctl enable bluetoothd > $null 2>&1
+	sleep 1
+	echo
+	msg_procces "umount filesystem ..."
+	umount -R $chroot > $null 2>&1
+	umount -l $chroot > $null 2>&1
+	sleep 2
+	echo
+	echo "[+] Installing arch success! ..."
+	echo
+	echo "Now you can say ${blink}I use arch btw ..."
+	echo
+	exit 0
+}
+
+main(){
+	checking_internet
+	banner
+	partition
+	set_partition
+	format_partition
+	mount_partition
+	install_base
+	browser
+	set_timezone
+	set_hostname
+	set_username
+	set_password
+	locale
+	set_locale
+	install_grub
+	set_de
+	finish_install
+}
+
+main "$@"

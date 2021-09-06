@@ -1,0 +1,30 @@
+#!/bin/bash
+
+###############################
+# Author : rey fooster 		  #
+# - alfaridzi1337@gmail.com - #  
+###############################
+
+GREEN="$(tput setaf 2)"
+RESET="$(tput sgr0)"
+
+uefi_dir='/sys/firmware/efi/efivars'
+
+check_bios () {
+echo "${GREEN}* ${RESET}Check you bios ..."
+sleep 2
+if [ -d "$uefi_dir" ]
+then
+	echo "${GREEN}* ${RESET}UEFI ..."
+	sh src/arch_uefi
+else
+	echo "${GREEN}* ${RESET}Bios ..."
+	sh src/arch_bios
+fi
+}
+
+main () {
+	check_bios
+}
+
+main "$@"
