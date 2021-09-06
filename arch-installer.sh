@@ -171,7 +171,7 @@ install_base ()
 	echo
 	msg_procces "Installing packages, make sure the internet is still active ..."
 	pacman -Sy --noconfirm > $null 2>&1
-	pacstrap $chroot $base > $null 2>&1
+	pacstrap $chroot $base $editor > $null 2>&1
 	genfstab -U $chroot >> $chroot/etc/fstab
 	msg_procces "Finished ..."
 	sleep 2
@@ -183,6 +183,7 @@ set_timezone ()
 	title "configuration"
 	echo
 	read -p "[?] Set timezone (Region/City) : " timezone
+	echo
 	msg_procces "Set timezone $timezone ..."
 	arch-chroot $chroot ln -sf /usr/share/zoneinfo/$timezone /etc/localtime 
 	arch-chroot $chroot hwclock --systohc
@@ -280,7 +281,7 @@ locale() {
 	echo
 	title "Set locale"
 	echo
-	reap -p "[?] Set locale [en_US.UTF-8 UTF-8] : " locale
+	read -p "[?] Set locale [en_US.UTF-8 UTF-8] : " locale
 	case "$locale" in
 		*)
 		echo "en_US.UTF-8 UTF-8" >> $chroot/etc/locale.gen
