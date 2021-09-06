@@ -10,7 +10,7 @@ cd arch-installer
 ```
 3. and run script
 ```
-./arch-installer.sh
+./arch-installer
 ```
 if it doesn't work, you can try <b> bash arch-installer.sh </b> <br>
 <b>WARNING!!</b> only support UEFI
