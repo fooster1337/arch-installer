@@ -10,10 +10,10 @@ cd arch-installer
 ```
 3. and run script
 ```
-./arch-installer
+./setup
 ```
 if it doesn't work, you can try <b> bash arch-installer.sh </b> <br>
-<b>WARNING!!</b> only support UEFI
+<b>support UEFI and BIOS </b>
 
 # Partition
 | Minimal size  | Partition type | Mount point |
