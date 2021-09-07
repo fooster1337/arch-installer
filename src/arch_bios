@@ -179,7 +179,7 @@ browser () {
 		install_browser
 		;;
 		n|No|N|no|NO)
-		return
+		set_timezone
 		;;
 		*)
 		install_browser
@@ -403,7 +403,6 @@ main(){
 	format_partition
 	mount_partition
 	install_base
-	browser
 	set_timezone
 	set_hostname
 	set_username

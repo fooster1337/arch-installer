@@ -189,7 +189,7 @@ browser () {
 		install_browser
 		;;
 		n|No|N|no|NO)
-		return
+		set_timezone
 		;;
 		*)
 		install_browser
