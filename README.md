@@ -20,7 +20,7 @@ if it doesn't work, you can try <b> bash arch-installer.sh </b> <br>
 | ------------- | ------------- | ------------ |
 | 20G  | ext2,ext3,ext4, btrfs  | /            |
 | 200M  | boot  |                 /boot/efi    |
-| 2G`|  swap |                    -            |
+| 2G |  swap |                    -            |
 
 # Addition
 - <b>for donate you can click <a href="https://saweria.co/fooster"> This </a> </b>
