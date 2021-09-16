@@ -13,7 +13,7 @@ BLINK="$(tput blink)"
 GREEN="$(tput setaf 2)"
 
 # version 
-version='0.2'
+version='0.3'
 
 # packages base
 base='base base-devel linux linux-firmware sudo networkmanager bluez bluez-utils grub efibootmgr os-prober wpa_supplicant amd-ucode intel-ucode'
@@ -184,7 +184,7 @@ browser () {
 	title "BROWSER"
 	echo
 	read -p "[?] Install browser ($browser) [${GREEN}Yes${RESET}/${RED}No${RESET}] " browser
-	case "$set_dede" in
+	case "$browser" in
 		y|Yes|Y|yes|YES)
 		install_browser
 		;;
