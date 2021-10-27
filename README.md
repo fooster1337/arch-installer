@@ -12,7 +12,7 @@ cd arch-installer
 ```
 ./setup
 ```
-if it doesn't work, you can try <b> bash arch-installer.sh </b> <br>
+if it doesn't work, you can try <b> sh setup </b> <br>
 <b>support UEFI and BIOS </b>
 
 # Partition
